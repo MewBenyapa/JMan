@@ -2,43 +2,43 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class Map implements ActionListener{
+public class Map implements ActionListener {
     // Window for game with graphics and buttons.
-    public JFrame frame= new JFrame("J*Man!!!"); // The GUI window
+    public JFrame frame = new JFrame("J*Man!!!"); // The GUI window
     
     // The board of the game. Class JManPanel is an "inner class", defined below.
     private JManPanel board;                     
     
     // Buttons on the GUI
-    private JButton bUp= new JButton("Up");
-    private JButton bDown= new JButton("Down");
-    private JButton bLeft= new JButton("Left");
-    private JButton bRight= new JButton("Right");
-    private JButton bnewGame= new JButton("New Game");
+    private JButton bUp = new JButton("Up");
+    private JButton bDown = new JButton("Down");
+    private JButton bLeft = new JButton("Left");
+    private JButton bRight = new JButton("Right");
+    private JButton bnewGame = new JButton("New Game");
     
     // Box to contain the direction buttons
-    private Box buttonBox= new Box(BoxLayout.X_AXIS);
+    private Box buttonBox = new Box(BoxLayout.X_AXIS);
     
     // The box to contain buttonBox and the instructions
-    Box instructBox= new Box(BoxLayout.Y_AXIS);
+    Box instructBox = new Box(BoxLayout.Y_AXIS);
     
-    private int height= 20;  // height of the map in tiles.
-    private int width= 20;   // width of the map in tiles.
-    private int tileWidth= 16;  // width of a tile in pixels.
-    private int tileHeight= 16; // height of a tile in pixels.
+    private int height = 20;  // height of the map in tiles.
+    private int width = 20;   // width of the map in tiles.
+    private int tileWidth = 16;  // width of a tile in pixels.
+    private int tileHeight = 16; // height of a tile in pixels.
     
     private Piece[][] grid; //grid of Pieces that makes up the game.
     
     private JMan jMan; //the J*Man piece in this map.
     
-    /** Start a game 20x20 game wih 10 walkers, 10 pillars, and 20 blocks. */
+    /** Start a game 20x20 game with 10 walkers, 10 pillars, and 20 blocks. */
     public static void main(String[] pars) {
-        Map m= new Map();
+        Map m = new Map();
     }
     
     /** Constructor: a default 20 x 20 game with 10 walkers, 10 pillars,
      and 20 blocks placed randomly throughout the game grid. */
-    public Map(){
+    public Map() {
         this(20, 20, 20, 10, 10);
     }
     
@@ -46,12 +46,12 @@ public class Map implements ActionListener{
      wa walkers, and pi pillars. 
      J#Man is at position (0, 0), and all other pieces are placed randomly.
      Precondition: number of pieces specified is <= h*w. */
-    public Map(int h, int w, int bl, int wa, int pi){
-        this.height= h;
-        this.width= w;
+    public Map(int h, int w, int bl, int wa, int pi) {
+        this.height = h;
+        this.width = w;
         
         // Set the preferred dimensions of the buttons
-        Dimension buttondim= new Dimension(width*tileWidth/4,27);
+        Dimension buttondim = new Dimension(width*tileWidth/4,27);
         bUp.setPreferredSize(buttondim);
         bDown.setPreferredSize(buttondim);
         bLeft.setPreferredSize(buttondim);
@@ -118,38 +118,38 @@ public class Map implements ActionListener{
         Precondition. The map must have enough empty spaces for all of them. */
     private void putOnMap(int bl, int wa, int pi) {
         // Put the blocks on the map.
-        int k= 0;
+        int k = 0;
         // invariant: k blocks have been added.
         while (k < bl) {
-            int xx= Piece.rand(0, width-1);
-            int yy= Piece.rand(0, height-1);
+            int xx= Piece.rand(0, width - 1);
+            int yy= Piece.rand(0, height - 1);
             if(isEmpty(xx, yy)){
                 putNew(Piece.BLOCK, xx, yy);
-                k= k+1;
+                k = k + 1;
             }
         }
         
         // Put the walkers on the map.
-        k= 0;
+        k = 0;
         // invariant: k walkers have been added.
         while (k < wa) {
-            int xx= Piece.rand(0, width-1);
-            int yy= Piece.rand(0, height-1);
-            if(isEmpty(xx, yy)){
+            int xx = Piece.rand(0, width - 1);
+            int yy = Piece.rand(0, height - 1);
+            if(isEmpty(xx, yy)) {
                 putNew(Piece.WALKER, xx, yy);
-                k= k+1;
+                k = k + 1;
             }
         }
         
         // Put the pillars on the map.
-        k= 0;
+        k = 0;
         // invariant: k pillars have been added.
-        while(k < pi){
-            int xx= Piece.rand(0, width-1);
-            int yy= Piece.rand(0, height-1);
-            if(isEmpty(xx, yy)){
+        while(k < pi) {
+            int xx = Piece.rand(0, width - 1);
+            int yy = Piece.rand(0, height - 1);
+            if(isEmpty(xx, yy)) {
                 putNew(Piece.PILLAR, xx, yy);
-                k= k+1;
+                k = k + 1;
             }
         }
     }
@@ -158,23 +158,31 @@ public class Map implements ActionListener{
      in location (x, y); and,
      if the new piece is J*Man, store it in field jMan.
      Precondition: typ is one of the piece constants in class Piece.*/
-    public void putNew(int typ, int x, int y){
-        
+    public void putNew(int typ, int x, int y) {
+        if (isInGrid(x, y) && isEmpty(x, y)) {
+        	if (typ == 0) { this.grid[x][y] = new Block(x, y, this); }
+        	else if (typ == 1) { 
+        		this.jMan = new JMan(x, y, JMan.rand(0, 2), this);
+        		this.grid[x][y] = jMan;
+        	}
+        	else if (typ == 2) { this.grid[x][y] = new Walker(x, y, Walker.rand(0, 2), this); }
+        	else if (typ == 3) { this.grid[x][y] = new Pillar(x, y, Pillar.rand(0, 2), this); }
+        }
     }
     
     /** = "(x, y) is inside the grid". */
-    public boolean isInGrid(int x, int y){
+    public boolean isInGrid(int x, int y) {
         return x > -1 && y > -1 && x < width && y < height;
     }
     
     /** = "(x, y) is inside the grid and does not contain a piece'. */
-    public boolean isEmpty(int x, int y){
-        return isInGrid(x,y) && grid[x][y] == null;
+    public boolean isEmpty(int x, int y) {
+        return isInGrid(x, y) && grid[x][y] == null;
     }
     
     /** = the Piece on tile (x, y) (null if (x, y) is outside the grid or contains null). */
-    public Piece pieceAt(int x, int y){
-        if(isInGrid(x,y)){
+    public Piece pieceAt(int x, int y) {
+        if(isInGrid(x,y)) {
             return grid[x][y];
         }
         return null;
@@ -188,8 +196,8 @@ public class Map implements ActionListener{
      1. (toX, toY) is inside the grid.
      2. The move is allowed by the game. */
     public void move(int fromX, int fromY, int toX, int toY) {
-        grid[toX][toY]= grid[fromX][fromY];
-        grid[fromX][fromY]= null;
+        grid[toX][toY] = grid[fromX][fromY];
+        grid[fromX][fromY] = null;
         grid[toX][toY].setX(toX);
         grid[toX][toY].setY(toY);
     }
@@ -198,10 +206,10 @@ public class Map implements ActionListener{
         reset all their has-acted flags to false. */
     public void act(){
         // Make every piece act.
-        for (int i= 0; i < width; i= i+1){
-            for (int j= 0; j < height; j= j+1){
-                if (!isEmpty(i, j)){
-                    Piece p= grid[i][j];
+        for (int i = 0; i < width; i = i + 1) {
+            for (int j = 0; j < height; j = j + 1) {
+                if (!isEmpty(i, j)) {
+                    Piece p = grid[i][j];
                     p.act();
                     p.setActed(true);
                 }
@@ -209,9 +217,9 @@ public class Map implements ActionListener{
         }
         
         // Set all the act flags to false.
-        for (int i= 0; i < width; i= i+1){
-            for (int j= 0; j < height; j= j+1){
-                if (!isEmpty(i, j)){
+        for (int i = 0; i < width; i = i + 1){
+            for (int j = 0; j < height; j = j + 1){
+                if (!isEmpty(i, j)) {
                     grid[i][j].setActed(false);
                 }
             }
@@ -227,22 +235,22 @@ public class Map implements ActionListener{
         is desired and act accordingly.
      
         After all is done, repaint the game board. */
-    public void actionPerformed(ActionEvent e){
-        if (e.getSource() == bUp){
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == bUp) {
             jMan.step(0);
             act();
-        } else if (e.getSource() == bDown){
-            jMan.step(1);
+        } else if (e.getSource() == bDown) {
+            jMan.step(1); 
             act();
-        } else if (e.getSource() == bLeft){
+        } else if (e.getSource() == bLeft) {
             jMan.step(2);
             act();
-        } else if (e.getSource() == bRight){
+        } else if (e.getSource() == bRight) {
             jMan.step(3);
             act();
-        } else if (e.getSource() == bnewGame){
+        } else if (e.getSource() == bnewGame) {
             if (JOptionPane.showConfirmDialog(frame, "Start a new game of the standard size?","New Game?",
-                                             JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION){
+                                             JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
                 new Map();
             }
         } 
@@ -252,52 +260,53 @@ public class Map implements ActionListener{
     
     
     /* Inner class to take care of the graphics. */
-    private class JManPanel extends JPanel{
-        private Map m;
+    private class JManPanel extends JPanel {
+        
+    	private Map m;
         
         /* Constructor: an instance with map m. */
-        public JManPanel(Map m){
-            this.m= m;
+        public JManPanel(Map m) {
+            this.m = m;
             setPreferredSize(new Dimension(tileWidth*width, tileHeight*height));
         }
         
         /* Paint the game board. */
-        public void paint(Graphics g){
+        public void paint(Graphics g) {
             //paint the background
             g.setColor(Color.BLACK);
             g.fillRect(0, 0, m.width*m.tileWidth, m.height*m.tileHeight);
             
-            for (int i= 0; i < m.width; i= i+1){
-                for (int j= 0; j < m.height; j= j+1){
-                    int h= i * m.tileWidth;
-                    int h1= (i+1) * m.tileWidth;
-                    int v= j * m.tileHeight;
-                    int v1= (j+1) * m.tileHeight;
+            for (int i= 0; i < m.width; i = i + 1) {
+                for (int j = 0; j < m.height; j = j + 1) {
+                    int h = i * m.tileWidth;
+                    int h1 = (i + 1) * m.tileWidth;
+                    int v = j * m.tileHeight;
+                    int v1 = (j + 1) * m.tileHeight;
                     
                     // Paint tile (i, j). It is in pixels (h..h1-1, v..v1-1).
-                    if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.BLOCK){
+                    if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.BLOCK) {
                         // Tile is a block; fill it with a white square.
                         g.setColor(Color.WHITE);
-                        g.fillRect(h+1, v, m.tileWidth-2, m.tileHeight-2);
+                        g.fillRect(h + 1, v, m.tileWidth - 2, m.tileHeight - 2);
                         
-                    } else if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.JMAN){
+                    } else if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.JMAN) {
                         // Fill J*Man's square with J*Man's Asterix Icon.
                         g.setColor(jMan.getColor());
-                        g.drawLine(h+3, v+2, h1-3, v1-2);
-                        g.drawLine(h+3, v1-2, h1-3, v+2);
-                        g.drawLine(h+1, v+m.tileHeight/2, h1-1, v+m.tileHeight/2);
-                        g.drawLine(h+m.tileWidth/2, v+1, h+m.tileWidth/2, v1-1);
+                        g.drawLine(h + 3, v + 2, h1 - 3, v1 - 2);
+                        g.drawLine(h + 3, v1 - 2, h1 - 3, v + 2);
+                        g.drawLine(h + 1, v + m.tileHeight / 2, h1 - 1, v + m.tileHeight/2);
+                        g.drawLine(h + m.tileWidth / 2, v + 1, h + m.tileWidth / 2, v1 - 1);
                         
-                    } else if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.WALKER){
+                    } else if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.WALKER) {
                         //Tile is a walker, fill it with an appropriate colored circle.
                         g.setColor(m.grid[i][j].getColor()); 
-                        g.fillOval(h+1, v, m.tileWidth-2, m.tileHeight-2);
+                        g.fillOval(h + 1, v, m.tileWidth - 2, m.tileHeight - 2);
                         
-                    } else if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.PILLAR){
+                    } else if (m.grid[i][j] != null && m.grid[i][j].getType() == Piece.PILLAR) {
                         // Tile is a pillar, fill it with an appropriate colored triangle.
                         g.setColor(m.grid[i][j].getColor());
-                        g.fillPolygon(new int[]{h+1, h1-1, h+m.tileWidth/2},
-                                      new int[]{v1-2, v1-2, v}, 3);
+                        g.fillPolygon(new int[]{h + 1, h1 - 1, h + m.tileWidth / 2},
+                                      new int[]{v1 - 2, v1 - 2, v}, 3);
                     }
                 }
             }//end of for loops
